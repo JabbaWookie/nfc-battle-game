@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Realm: The Lab</title>
+    <title>NFC Realm: Data Core</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #000; color: white; -webkit-tap-highlight-color: transparent; }
-        .glass { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); }
-        .card-p1 { border: 4px solid #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .card-p2 { border: 4px solid #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-        .tab-active { color: #eab308; border-bottom: 2px solid #eab308; }
+        body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(10px); }
+        .card-p1 { border: 4px solid #f85149; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
+        .card-p2 { border: 4px solid #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4); }
+        .tab-active { color: #f2cc60; border-bottom: 2px solid #f2cc60; }
         .poison-anim { animation: poison-pulse 2s infinite; }
         @keyframes poison-pulse {
-            0%, 100% { box-shadow: 0 0 0px rgba(34, 197, 94, 0); }
-            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+            0%, 100% { box-shadow: 0 0 0px rgba(63, 185, 80, 0); }
+            50% { box-shadow: 0 0 20px rgba(63, 185, 80, 0.8); }
         }
     </style>
 </head>
@@ -23,30 +23,30 @@
     <!-- Header -->
     <header class="p-4 bg-gray-900 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
         <h1 class="text-xl font-black italic text-yellow-500 tracking-tighter">NFC REALM</h1>
-        <button id="nfcBtn" onclick="startNFC()" class="bg-red-600 text-white text-[10px] font-black py-2 px-4 rounded-full transition-all">
-            ACTIVATE NFC
-        </button>
+        <div class="flex gap-2">
+            <button id="scanBtn" onclick="activateNFC('identify')" class="bg-blue-600 text-white text-[10px] font-black py-2 px-3 rounded-full uppercase">Identify Tag</button>
+        </div>
     </header>
 
     <!-- Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around p-3 z-50">
         <button onclick="switchTab('collection')" id="btn-collection" class="text-[10px] font-bold uppercase tracking-widest tab-active">Collection</button>
-        <button onclick="switchTab('editor')" id="btn-editor" class="text-[10px] font-bold uppercase tracking-widest text-gray-500">The Lab</button>
+        <button onclick="switchTab('editor')" id="btn-editor" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">The Lab</button>
     </nav>
 
     <!-- VIEW: COLLECTION -->
     <section id="view-collection" class="p-4">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xs font-bold text-gray-500 uppercase">Your Deck</h2>
-            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold">+ CREATE</button>
+            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase tracking-tighter">+ Create New</button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div id="slot-1" class="h-24 border border-dashed border-red-500/30 rounded flex items-center justify-center text-[10px] font-bold text-red-500">P1 SLOT</div>
-            <div id="slot-2" class="h-24 border border-dashed border-blue-500/30 rounded flex items-center justify-center text-[10px] font-bold text-blue-500">P2 SLOT</div>
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div id="slot-1" class="h-28 border border-dashed border-red-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/10">P1 SLOT</div>
+            <div id="slot-2" class="h-28 border border-dashed border-blue-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/10">P2 SLOT</div>
         </div>
 
-        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded font-black uppercase mb-6 tracking-widest">Enter Battle</button>
+        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-xl font-black uppercase mb-6 tracking-widest shadow-lg shadow-yellow-500/20">Enter Arena</button>
 
         <div id="deckGrid" class="grid grid-cols-2 gap-4"></div>
     </section>
@@ -54,54 +54,58 @@
     <!-- VIEW: THE LAB (EDITOR) -->
     <section id="view-editor" class="hidden p-4">
         <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-center mb-6 bg-gray-900 p-2 rounded-lg">
-                <button onclick="changeEditorIndex(-1)" class="p-2">◀</button>
-                <span id="editorInfo" class="text-xs font-bold text-yellow-500 uppercase">Card 1 of 1</span>
-                <button onclick="changeEditorIndex(1)" class="p-2">▶</button>
+            <div class="flex justify-between items-center mb-4 bg-gray-900 p-2 rounded-xl">
+                <button onclick="changeEditorIndex(-1)" class="p-2 text-yellow-500">◀</button>
+                <span id="editorInfo" class="text-[10px] font-bold uppercase tracking-widest">Card 1 / 1</span>
+                <button onclick="changeEditorIndex(1)" class="p-2 text-yellow-500">▶</button>
             </div>
 
-            <div class="bg-gray-900 p-4 rounded-2xl border border-gray-800">
-                <label class="text-[10px] text-gray-500 uppercase font-bold">Image URL</label>
-                <input type="text" id="edit-img" oninput="syncEditor()" class="w-full bg-black p-2 rounded text-xs mb-4 border border-gray-800">
-                
-                <img id="edit-preview-img" src="" class="w-full h-48 object-cover rounded mb-4 shadow-2xl">
+            <div class="bg-gray-900 p-5 rounded-3xl border border-gray-800">
+                <div class="relative mb-4">
+                    <img id="edit-preview-img" src="" class="w-full h-52 object-cover rounded-2xl shadow-2xl border border-gray-700">
+                    <button onclick="activateNFC('link')" class="absolute top-2 right-2 bg-black/70 text-white text-[9px] font-bold p-2 rounded-lg border border-white/20">LINK TO TAG</button>
+                </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="space-y-3">
                     <div>
-                        <label class="text-[10px] text-gray-500 uppercase font-bold">Name</label>
-                        <input type="text" id="edit-name" oninput="syncEditor()" class="w-full bg-black p-2 rounded text-sm font-bold border border-gray-800">
+                        <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Hero Image URL</label>
+                        <input type="text" id="edit-img" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-xs border border-gray-800 focus:border-yellow-500 outline-none">
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-500 uppercase font-bold">Tag Link</label>
-                        <div id="edit-tag" class="text-[9px] bg-gray-800 p-2 rounded truncate text-gray-400 mt-1">Unlinked</div>
+                        <label class="text-[10px] text-gray-500 uppercase font-bold ml-1">Hero Name</label>
+                        <input type="text" id="edit-name" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-sm font-bold border border-gray-800 focus:border-yellow-500 outline-none">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 mb-4">
-                    <div>
-                        <label class="text-[10px] text-red-500 font-bold">HP</label>
-                        <input type="number" id="edit-hp" oninput="syncEditor()" class="w-full bg-black p-2 rounded border border-gray-800">
+                <div class="grid grid-cols-3 gap-2 my-4">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                        <label class="block text-[9px] text-red-500 font-bold uppercase">HP</label>
+                        <input type="number" id="edit-hp" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
                     </div>
-                    <div>
-                        <label class="text-[10px] text-orange-500 font-bold">ATK</label>
-                        <input type="number" id="edit-atk" oninput="syncEditor()" class="w-full bg-black p-2 rounded border border-gray-800">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                        <label class="block text-[9px] text-orange-500 font-bold uppercase">ATK</label>
+                        <input type="number" id="edit-atk" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
                     </div>
-                    <div>
-                        <label class="text-[10px] text-blue-500 font-bold">DEF</label>
-                        <input type="number" id="edit-def" oninput="syncEditor()" class="w-full bg-black p-2 rounded border border-gray-800">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                        <label class="block text-[9px] text-blue-500 font-bold uppercase">DEF</label>
+                        <input type="number" id="edit-def" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
                     </div>
                 </div>
 
-                <div class="space-y-2 mb-6">
-                    <label class="text-[10px] text-gray-500 uppercase font-bold">Custom Move Names</label>
-                    <input type="text" id="edit-m-atk" oninput="syncEditor()" placeholder="Attack Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
-                    <input type="text" id="edit-m-def" oninput="syncEditor()" placeholder="Defense Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
-                    <input type="text" id="edit-m-heal" oninput="syncEditor()" placeholder="Heal Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <input type="text" id="edit-m-atk" oninput="syncEditor()" placeholder="Attack" class="bg-black p-2 rounded-lg text-[10px] border border-gray-800">
+                    <input type="text" id="edit-m-def" oninput="syncEditor()" placeholder="Defend" class="bg-black p-2 rounded-lg text-[10px] border border-gray-800">
+                    <input type="text" id="edit-m-heal" oninput="syncEditor()" placeholder="Heal" class="bg-black p-2 rounded-lg text-[10px] border border-gray-800">
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="cloneCurrent()" class="bg-blue-900/30 text-blue-400 py-3 rounded text-[10px] font-bold uppercase">Clone</button>
-                    <button onclick="deleteCurrent()" class="bg-red-900/30 text-red-400 py-3 rounded text-[10px] font-bold uppercase">Delete</button>
+                <div class="border-t border-gray-800 pt-4 mt-4">
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase mb-2">Data Core</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="exportSingle()" class="flex-1 bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold">Copy JSON</button>
+                        <button onclick="importJSON()" class="flex-1 bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold">Import</button>
+                        <button onclick="cloneCurrent()" class="flex-1 bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold">Clone</button>
+                        <button onclick="deleteCurrent()" class="flex-1 bg-red-900/20 text-red-500 text-[9px] py-2 rounded-lg uppercase font-bold">Delete</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -110,26 +114,27 @@
     <!-- ARENA OVERLAY -->
     <div id="arena" class="hidden fixed inset-0 bg-black z-[100] p-4 flex flex-col">
         <div id="arena-stage" class="flex-grow flex items-center justify-between gap-4"></div>
-        <div id="battleLog" class="h-24 bg-gray-900 rounded p-2 font-mono text-[10px] overflow-y-auto mb-4 border border-gray-800 text-gray-400"></div>
+        <div id="battleLog" class="h-28 bg-gray-900 rounded-xl p-3 font-mono text-[10px] overflow-y-auto mb-4 border border-gray-800 text-gray-400"></div>
         <div id="moveGrid" class="grid grid-cols-2 gap-2"></div>
     </div>
 
     <script>
-        let deck = JSON.parse(localStorage.getItem('nfc_deck_v2')) || [];
+        let deck = JSON.parse(localStorage.getItem('nfc_realm_deck')) || [];
         let editIdx = 0;
         let p1 = null, p2 = null;
         let turn = 1;
+        let nfcMode = null; // 'link' or 'identify'
 
         window.onload = () => {
             if (deck.length === 0) {
-                deck.push(generateCard("Cyber Shark", "https://picsum.photos/seed/shark/400/600", "starter_1"));
+                deck.push(createCardData("Cyber Shark", "https://picsum.photos/seed/shark/400/600", "starter_1"));
                 save();
             }
             renderDeck();
             loadEditor();
         };
 
-        function generateCard(name, img, id) {
+        function createCardData(name, img, id) {
             return {
                 id: id || "temp_" + Date.now(),
                 name: name || "New Hero",
@@ -140,35 +145,47 @@
             };
         }
 
-        // --- NFC ---
-        async function startNFC() {
+        // --- NFC ENGINE ---
+        async function activateNFC(mode) {
             if (!('NDEFReader' in window)) return alert("NFC not supported.");
+            nfcMode = mode;
+            
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                document.getElementById('nfcBtn').innerText = "NFC ACTIVATED";
-                document.getElementById('nfcBtn').className = "bg-green-600 text-white text-[10px] font-black py-2 px-4 rounded-full";
                 
+                if(mode === 'link') alert("LINK MODE: Tap the tag you want to link to this character.");
+                if(mode === 'identify') alert("IDENTIFY MODE: Tap a tag to select its character.");
+
                 ndef.onreading = event => {
-                    const id = event.serialNumber;
-                    const card = deck.find(c => c.id === id);
-                    if (card) { selectForBattle(card.id); } 
-                    else if (confirm("New Tag! Link to current editor card?")) {
-                        deck[editIdx].id = id; save(); loadEditor();
+                    const tagId = event.serialNumber;
+                    
+                    if(nfcMode === 'link') {
+                        deck[editIdx].id = tagId;
+                        save(); loadEditor(); renderDeck();
+                        alert(`Success! Character linked to tag: ${tagId}`);
+                    } 
+                    else if(nfcMode === 'identify') {
+                        const card = deck.find(c => c.id === tagId);
+                        if(card) {
+                            selectForBattle(card.id);
+                        } else {
+                            alert("This tag isn't linked to any character in your deck.");
+                        }
                     }
                 };
-            } catch (e) { alert("NFC Error. Check HTTPS."); }
+            } catch (e) { alert("NFC Denied. Ensure you are on HTTPS."); }
         }
 
-        // --- COLLECTION & SELECTION ---
+        // --- DECK MANAGEMENT ---
         function renderDeck() {
             const grid = document.getElementById('deckGrid');
             grid.innerHTML = deck.map(c => `
-                <div onclick="selectForBattle('${c.id}')" class="bg-gray-900 rounded-xl overflow-hidden border-2 transition-all ${p1?.id === c.id ? 'card-p1' : (p2?.id === c.id ? 'card-p2' : 'border-transparent')}">
-                    <img src="${c.img}" class="w-full h-28 object-cover opacity-70">
-                    <div class="p-2 text-[10px]">
-                        <div class="font-black uppercase truncate">${c.name}</div>
-                        <div class="text-gray-500">HP:${c.hp} ATK:${c.atk}</div>
+                <div onclick="selectForBattle('${c.id}')" class="bg-gray-900 rounded-2xl overflow-hidden border-2 transition-all ${p1?.id === c.id ? 'card-p1' : (p2?.id === c.id ? 'card-p2' : 'border-transparent')}">
+                    <img src="${c.img}" class="w-full h-32 object-cover opacity-80">
+                    <div class="p-3">
+                        <div class="text-xs font-black uppercase truncate">${c.name}</div>
+                        <div class="text-[9px] text-gray-500 mt-1">HP ${c.hp} / ATK ${c.atk}</div>
                     </div>
                 </div>
             `).join('');
@@ -181,22 +198,22 @@
             else if (!p1) p1 = JSON.parse(JSON.stringify(card));
             else if (!p2) p2 = JSON.parse(JSON.stringify(card));
             
-            document.getElementById('slot-1').innerHTML = p1 ? `<img src="${p1.img}" class="h-full w-full object-cover">` : "P1 SLOT";
-            document.getElementById('slot-2').innerHTML = p2 ? `<img src="${p2.img}" class="h-full w-full object-cover">` : "P2 SLOT";
+            document.getElementById('slot-1').innerHTML = p1 ? `<img src="${p1.img}" class="h-full w-full object-cover rounded-lg">` : "P1 SLOT";
+            document.getElementById('slot-2').innerHTML = p2 ? `<img src="${p2.img}" class="h-full w-full object-cover rounded-lg">` : "P2 SLOT";
             document.getElementById('battleStartBtn').classList.toggle('hidden', !(p1 && p2));
             renderDeck();
         }
 
-        // --- THE LAB (EDITOR) ---
+        // --- THE LAB ---
         function loadEditor() {
             const c = deck[editIdx];
-            document.getElementById('editorInfo').innerText = `Card ${editIdx+1} of ${deck.length}`;
+            if(!c) return;
+            document.getElementById('editorInfo').innerText = `Card ${editIdx+1} / ${deck.length}`;
             document.getElementById('edit-name').value = c.name;
             document.getElementById('edit-img').value = c.img;
             document.getElementById('edit-hp').value = c.hp;
             document.getElementById('edit-atk').value = c.atk;
             document.getElementById('edit-def').value = c.def;
-            document.getElementById('edit-tag').innerText = c.id;
             document.getElementById('edit-m-atk').value = c.moves.atk;
             document.getElementById('edit-m-def').value = c.moves.def;
             document.getElementById('edit-m-heal').value = c.moves.heal;
@@ -218,13 +235,33 @@
             save(); renderDeck();
         }
 
+        // --- IMPORT / EXPORT ---
+        function exportSingle() {
+            const data = JSON.stringify(deck[editIdx]);
+            navigator.clipboard.writeText(data);
+            alert("Character JSON copied to clipboard!");
+        }
+
+        function importJSON() {
+            const str = prompt("Paste Character JSON here:");
+            if(!str) return;
+            try {
+                const obj = JSON.parse(str);
+                obj.id = "imported_" + Date.now(); // Reset ID to prevent conflicts
+                deck.push(obj);
+                save(); renderDeck();
+                editIdx = deck.length - 1;
+                loadEditor();
+            } catch(e) { alert("Invalid JSON data."); }
+        }
+
         function changeEditorIndex(dir) {
             editIdx = (editIdx + dir + deck.length) % deck.length;
             loadEditor();
         }
 
         function createNewCard() {
-            deck.push(generateCard());
+            deck.push(createCardData());
             editIdx = deck.length - 1;
             save(); switchTab('editor'); loadEditor();
         }
@@ -241,7 +278,7 @@
             editIdx = 0; save(); loadEditor(); renderDeck();
         }
 
-        // --- BATTLE LOGIC ---
+        // --- BATTLE LOGIC (Standard Port) ---
         function openArena() {
             document.getElementById('arena').classList.remove('hidden');
             renderArena();
@@ -255,17 +292,17 @@
             `;
             const actor = turn === 1 ? p1 : p2;
             document.getElementById('moveGrid').innerHTML = `
-                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.atk}</button>
-                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.def}</button>
-                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.heal}</button>
-                <button onclick="doMove('takeover')" class="bg-purple-700 p-4 rounded font-bold text-[8px] uppercase">Hostile Takeover</button>
-                <button onclick="doMove('wealth')" class="bg-yellow-600 text-black p-4 rounded font-bold text-xs uppercase col-span-2">Wealth Buff</button>
+                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg shadow-red-900/30">${actor.moves.atk}</button>
+                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg shadow-blue-900/30">${actor.moves.def}</button>
+                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg shadow-green-900/30">${actor.moves.heal}</button>
+                <button onclick="doMove('takeover')" class="bg-purple-700 p-4 rounded-xl font-bold text-[8px] uppercase">Takeover</button>
+                <button onclick="doMove('wealth')" class="bg-yellow-600 text-black p-4 rounded-xl font-bold text-xs uppercase col-span-2">Wealth Buff</button>
             `;
         }
 
         function fighterUI(c, label, border) {
             return `<div class="w-1/2 flex flex-col items-center">
-                <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden border-4 ${border} ${c.poisoned?'poison-anim':''}">
+                <div class="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-4 ${border} ${c.poisoned?'poison-anim':''}">
                     <img src="${c.img}" class="w-full h-full object-cover">
                     <div class="absolute bottom-0 w-full bg-black/80 p-2">
                         <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
@@ -273,7 +310,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-[8px] font-bold mt-1 text-gray-500">${label}: ${c.name}</div>
+                <div class="text-[9px] font-black mt-2 text-gray-500 uppercase">${c.name}</div>
             </div>`;
         }
 
@@ -310,7 +347,7 @@
         }
 
         function addLog(m) { const l = document.getElementById('battleLog'); l.innerHTML = `<div>> ${m}</div>` + l.innerHTML; }
-        function save() { localStorage.setItem('nfc_deck_v2', JSON.stringify(deck)); }
+        function save() { localStorage.setItem('nfc_realm_deck', JSON.stringify(deck)); }
         function switchTab(t) {
             document.getElementById('view-collection').classList.toggle('hidden', t !== 'collection');
             document.getElementById('view-editor').classList.toggle('hidden', t !== 'editor');
