@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Realm v1.6</title>
+    <title>NFC Realm v1.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; font-family: system-ui, sans-serif; }
@@ -16,6 +16,8 @@
             50% { background-color: #166534; }
             100% { background-color: #052e16; }
         }
+        /* Prevents accidental double-taps zooming or ghosting */
+        * { touch-action: manipulation; }
     </style>
 </head>
 <body class="min-h-screen pb-24">
@@ -25,13 +27,13 @@
         NFC Sensor: Idle
     </div>
 
-    <!-- Header with Version Name -->
+    <!-- Header -->
     <header class="p-4 bg-gray-900 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
         <div>
             <h1 class="text-xl font-black italic text-yellow-500 tracking-tighter leading-none">NFC REALM</h1>
-            <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">v1.6 Atomic Lock</span>
+            <span class="text-[8px] text-gray-500 font-bold uppercase tracking-widest">v1.7 Event Shield</span>
         </div>
-        <button onclick="setNFCMode('identify')" class="bg-blue-600 text-white text-[10px] font-black py-2 px-4 rounded-full uppercase shadow-lg active:scale-95">Identify Tag</button>
+        <button onclick="setNFCMode('identify')" class="bg-blue-600 text-white text-[10px] font-black py-2 px-4 rounded-full uppercase shadow-lg">Identify Tag</button>
     </header>
 
     <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around p-3 z-50">
@@ -42,21 +44,20 @@
     <!-- VIEW: COLLECTION -->
     <section id="view-collection" class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xs font-bold text-gray-500 uppercase font-mono tracking-widest">Battle Slots</h2>
-            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase active:scale-95">+ New Hero</button>
+            <h2 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Arena Slots</h2>
+            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase">+ New Hero</button>
         </div>
 
-        <!-- Slot UI -->
         <div class="grid grid-cols-2 gap-4 mb-6">
-            <div id="slot-1" onclick="clearSlot(1)" class="h-32 border-2 border-dashed border-red-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/5 overflow-hidden transition-all active:opacity-70">
+            <div id="slot-1" onclick="clearSlot(1)" class="h-32 border-2 border-dashed border-red-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/5 overflow-hidden transition-all">
                 P1 EMPTY
             </div>
-            <div id="slot-2" onclick="clearSlot(2)" class="h-32 border-2 border-dashed border-blue-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/5 overflow-hidden transition-all active:opacity-70">
+            <div id="slot-2" onclick="clearSlot(2)" class="h-32 border-2 border-dashed border-blue-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/5 overflow-hidden transition-all">
                 P2 EMPTY
             </div>
         </div>
 
-        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase mb-6 tracking-widest shadow-xl animate-bounce">Enter Arena</button>
+        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase mb-6 tracking-widest shadow-xl">Enter Arena</button>
         
         <h2 class="text-[10px] font-bold text-gray-600 uppercase mb-3 tracking-widest">Library</h2>
         <div id="deckGrid" class="grid grid-cols-2 gap-4"></div>
@@ -74,12 +75,12 @@
             <div class="bg-gray-900 p-5 rounded-3xl border border-gray-800 shadow-2xl">
                 <div class="relative mb-4">
                     <img id="edit-preview-img" src="" class="w-full h-56 object-cover rounded-2xl border border-gray-700">
-                    <button onclick="setNFCMode('link')" class="absolute top-2 right-2 bg-yellow-500 text-black text-[9px] font-black p-2 rounded-lg border border-black/20 shadow-lg uppercase">Link Physical Tag</button>
+                    <button onclick="setNFCMode('link')" class="absolute top-2 right-2 bg-yellow-500 text-black text-[9px] font-black p-2 rounded-lg border border-black/20 shadow-lg uppercase">Link Tag</button>
                 </div>
 
                 <div class="space-y-3">
-                    <input type="text" id="edit-img" placeholder="Image URL" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-xs border border-gray-800 outline-none focus:border-yellow-500">
-                    <input type="text" id="edit-name" placeholder="Hero Name" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-sm font-bold border border-gray-800 outline-none focus:border-yellow-500">
+                    <input type="text" id="edit-img" placeholder="Image URL" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-xs border border-gray-800 outline-none">
+                    <input type="text" id="edit-name" placeholder="Hero Name" oninput="syncEditor()" class="w-full bg-black p-2 rounded-xl text-sm font-bold border border-gray-800 outline-none">
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 my-4">
@@ -121,14 +122,14 @@
     </div>
 
     <script>
-        // --- DATA ---
+        // --- CORE DATA ---
         let deck = JSON.parse(localStorage.getItem('nfc_realm_deck')) || [];
         let editIdx = 0;
         let p1 = null, p2 = null;
         let turn = 1;
-        let nfcReader = null;
-        let currentMode = null;
-        let lastScanTime = 0;
+        
+        // Anti-Ghosting Shield
+        let lastInteractionTime = 0;
 
         window.onload = () => {
             if (deck.length === 0) {
@@ -141,7 +142,7 @@
 
         function createCardData(name, img, id) {
             return {
-                id: id || "temp_" + Math.random().toString(36).substr(2, 9),
+                id: id || "hero_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5),
                 name: name || "New Hero",
                 img: img || "https://picsum.photos/400/600",
                 hp: 20, maxHp: 20, atk: 5, def: 2,
@@ -150,26 +151,39 @@
             };
         }
 
-        // --- ATOMIC SELECTION (FIXED) ---
-        function selectManually(id) {
-            const card = deck.find(c => c.id === id);
+        // --- STABLE SELECTION LOGIC ---
+        function selectByIndex(index, event) {
+            // 1. Debounce clicks to prevent double-firing
+            const now = Date.now();
+            if (now - lastInteractionTime < 250) return; 
+            lastInteractionTime = now;
+
+            // 2. Identify target card
+            const card = deck[index];
             if (!card) return;
 
-            // Strict Atomic Chain: Check one condition and return immediately
-            if (p1 && p1.id === id) {
-                p1 = null; // Toggle Off
+            // 3. ATOMIC SELECTION CHAIN
+            // We use the 'id' for logical checking but treat each index as a separate tap
+            
+            // Check if this EXACT card (by id) is in Slot 1
+            if (p1 && p1.id === card.id) {
+                p1 = null; 
             } 
-            else if (p2 && p2.id === id) {
-                p2 = null; // Toggle Off
+            // Check if this EXACT card (by id) is in Slot 2
+            else if (p2 && p2.id === card.id) {
+                p2 = null;
             } 
-            else if (!p1) {
+            // Try to fill Player 1
+            else if (p1 === null) {
                 p1 = JSON.parse(JSON.stringify(card));
             } 
-            else if (!p2) {
+            // Try to fill Player 2
+            else if (p2 === null) {
                 p2 = JSON.parse(JSON.stringify(card));
             } 
+            // Replace Player 2
             else {
-                p2 = JSON.parse(JSON.stringify(card)); // Replace P2 if both full
+                p2 = JSON.parse(JSON.stringify(card));
             }
 
             updateSlotsUI();
@@ -181,23 +195,23 @@
         }
 
         function updateSlotsUI() {
-            document.getElementById('slot-1').innerHTML = p1 ? `<img src="${p1.img}" class="h-full w-full object-cover rounded-xl">` : "P1 EMPTY";
-            document.getElementById('slot-2').innerHTML = p2 ? `<img src="${p2.img}" class="h-full w-full object-cover rounded-xl">` : "P2 EMPTY";
+            document.getElementById('slot-1').innerHTML = p1 ? `<img src="${p1.img}" class="h-full w-full object-cover rounded-xl shadow-lg">` : "P1 EMPTY";
+            document.getElementById('slot-2').innerHTML = p2 ? `<img src="${p2.img}" class="h-full w-full object-cover rounded-xl shadow-lg">` : "P2 EMPTY";
             document.getElementById('battleStartBtn').classList.toggle('hidden', !(p1 && p2));
             renderDeck();
         }
 
         function renderDeck() {
             const grid = document.getElementById('deckGrid');
-            grid.innerHTML = deck.map(c => {
-                let statusClass = "border-transparent";
-                if (p1?.id === c.id) statusClass = "card-p1";
-                if (p2?.id === c.id) statusClass = "card-p2";
+            grid.innerHTML = deck.map((c, index) => {
+                let borderClass = "border-transparent";
+                if (p1?.id === c.id) borderClass = "card-p1";
+                if (p2?.id === c.id) borderClass = "card-p2";
                 
                 return `
-                <div onclick="selectManually('${c.id}')" class="bg-gray-900 rounded-2xl overflow-hidden border-2 transition-all active:scale-95 ${statusClass}">
-                    <img src="${c.img}" class="w-full h-32 object-cover opacity-80">
-                    <div class="p-3">
+                <div onclick="selectByIndex(${index}, event)" class="bg-gray-900 rounded-2xl overflow-hidden border-2 transition-transform active:scale-95 ${borderClass}">
+                    <img src="${c.img}" class="w-full h-32 object-cover opacity-80 pointer-events-none">
+                    <div class="p-3 pointer-events-none">
                         <div class="text-[10px] font-black uppercase truncate">${c.name}</div>
                     </div>
                 </div>
@@ -205,47 +219,47 @@
         }
 
         // --- NFC ENGINE ---
+        let nfcReader = null;
+        let currentMode = null;
+
         async function setNFCMode(mode) {
-            if (!('NDEFReader' in window)) return alert("NFC not supported.");
+            if (!('NDEFReader' in window)) return alert("NFC Not Supported.");
             currentMode = mode;
             const banner = document.getElementById('nfcBanner');
-            banner.innerText = mode === 'link' ? "READY TO LINK: TAP TAG NOW" : "READY TO IDENTIFY: TAP TAG NOW";
+            banner.innerText = mode === 'link' ? "NFC: TAP TO LINK" : "NFC: TAP TO IDENTIFY";
             banner.classList.add('nfc-active');
 
             if (!nfcReader) {
                 try {
                     nfcReader = new NDEFReader();
                     await nfcReader.scan();
-                    nfcReader.onreading = (event) => {
+                    nfcReader.onreading = (e) => {
                         const now = Date.now();
-                        if (now - lastScanTime < 2000) return; // 2s Debounce
-                        lastScanTime = now;
+                        if (now - lastInteractionTime < 2000) return; 
+                        lastInteractionTime = now;
                         
                         if (navigator.vibrate) navigator.vibrate(100);
-                        processScan(event.serialNumber);
+                        const tagId = e.serialNumber;
+                        
+                        if (currentMode === 'link') {
+                            deck[editIdx].id = tagId;
+                            save(); loadEditor(); renderDeck();
+                            banner.innerText = "LINKED: " + deck[editIdx].name;
+                            banner.classList.remove('nfc-active');
+                            currentMode = null;
+                        } else if (currentMode === 'identify') {
+                            const foundIdx = deck.findIndex(c => c.id === tagId);
+                            if (foundIdx !== -1) {
+                                selectByIndex(foundIdx);
+                                banner.innerText = "IDENTIFIED: " + deck[foundIdx].name;
+                            } else { banner.innerText = "UNKNOWN TAG"; }
+                        }
                     };
-                } catch (err) { banner.innerText = "NFC PERMISSION DENIED"; }
+                } catch (err) { banner.innerText = "NFC DENIED"; }
             }
         }
 
-        function processScan(tagId) {
-            const banner = document.getElementById('nfcBanner');
-            if (currentMode === 'link') {
-                deck[editIdx].id = tagId;
-                save(); loadEditor(); renderDeck();
-                banner.innerText = `LINKED: ${deck[editIdx].name}`;
-                banner.classList.remove('nfc-active');
-                currentMode = null;
-            } else if (currentMode === 'identify') {
-                const found = deck.find(c => c.id === tagId);
-                if (found) {
-                    selectManually(found.id);
-                    banner.innerText = `IDENTIFIED: ${found.name}`;
-                } else { banner.innerText = "UNKNOWN TAG"; }
-            }
-        }
-
-        // --- EDITOR & DECK MGMT ---
+        // --- THE LAB ---
         function loadEditor() {
             const c = deck[editIdx];
             if(!c) return;
@@ -288,9 +302,10 @@
         }
 
         function cloneCurrent() {
-            let clone = JSON.parse(JSON.stringify(deck[editIdx]));
-            clone.id = "clone_" + Math.random().toString(36).substr(2, 9);
-            clone.name += " Copy";
+            const clone = JSON.parse(JSON.stringify(deck[editIdx]));
+            // Force a unique software ID for the clone
+            clone.id = "hero_" + Date.now() + "_" + Math.random().toString(36).substr(2, 5);
+            clone.name += " (Clone)";
             deck.push(clone);
             save(); changeEditorIndex(1);
         }
@@ -302,20 +317,20 @@
         }
 
         function exportSingle() {
-            navigator.clipboard.writeText(JSON.stringify(deck[editIdx])).then(() => alert("Copied JSON!"));
+            navigator.clipboard.writeText(JSON.stringify(deck[editIdx])).then(() => alert("JSON Copied!"));
         }
 
         function importJSON() {
-            const s = prompt("Paste Character JSON:");
+            const s = prompt("Paste JSON:");
             if(!s) return;
             try {
                 const o = JSON.parse(s);
-                o.id = "imp_" + Math.random().toString(36).substr(2, 9);
+                o.id = "imp_" + Date.now();
                 deck.push(o); save(); editIdx = deck.length-1; loadEditor(); renderDeck();
             } catch(e) { alert("Invalid JSON"); }
         }
 
-        // --- ARENA ---
+        // --- BATTLE ARENA ---
         function openArena() {
             document.getElementById('arena').classList.remove('hidden');
             renderArena();
@@ -343,9 +358,9 @@
             `;
             const actor = turn === 1 ? p1 : p2;
             document.getElementById('moveGrid').innerHTML = `
-                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.atk}</button>
-                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.def}</button>
-                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.heal}</button>
+                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.atk}</button>
+                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.def}</button>
+                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.heal}</button>
                 <button onclick="doMove('takeover')" class="bg-purple-700 p-4 rounded-xl font-bold text-[8px] uppercase">Takeover</button>
                 <button onclick="doMove('wealth')" class="bg-yellow-600 text-black p-4 rounded-xl font-bold text-xs uppercase col-span-2">Wealth Buff</button>
             `;
