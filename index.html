@@ -3,237 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Card Collector & Battle</title>
+    <title>NFC Realm: The Lab</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .card-selected-p1 { border: 4px solid #ef4444; transform: translateY(-5px); }
-        .card-selected-p2 { border: 4px solid #3b82f6; transform: translateY(-5px); }
-        .poisoned { animation: pulse-green 2s infinite; }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-        }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); }
+        .card-selected-p1 { border: 4px solid #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        .card-selected-p2 { border: 4px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        .tab-active { border-bottom: 3px solid #eab308; color: #eab308; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-gray-950 text-white min-h-screen pb-10">
+<body class="bg-black text-white min-h-screen font-sans">
 
-    <!-- Top Status Bar -->
-    <nav class="p-4 bg-gray-900 border-b border-gray-800 flex justify-between items-center sticky top-0 z-50">
-        <div>
-            <h1 class="text-xl font-black italic tracking-widest text-yellow-500">NFC REALM</h1>
-            <p id="nfcStatus" class="text-[10px] text-gray-400">TAP "ACTIVATE NFC" TO COLLECT</p>
-        </div>
-        <button id="nfcBtn" onclick="startNFC()" class="bg-yellow-600 hover:bg-yellow-500 text-black text-xs font-bold py-2 px-4 rounded-full transition-all">
-            ACTIVATE NFC
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around p-3 z-[200]">
+        <button onclick="switchTab('battle')" id="tab-battle" class="flex flex-col items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <span>Battle</span>
+        </button>
+        <button onclick="switchTab('collection')" id="tab-collection" class="flex flex-col items-center text-xs font-bold text-gray-500 uppercase tracking-widest tab-active">
+            <span>Collection</span>
+        </button>
+        <button onclick="switchTab('editor')" id="tab-editor" class="flex flex-col items-center text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <span>The Lab</span>
         </button>
     </nav>
 
-    <!-- Battle Selection Area -->
-    <div id="selectionArea" class="p-4 bg-gray-900/50 backdrop-blur-md">
-        <div class="flex justify-around items-center gap-4 mb-4">
-            <div id="slot-1" class="w-1/2 h-32 border-2 border-dashed border-red-900/50 rounded-xl flex flex-col items-center justify-center text-center p-2 bg-red-950/10">
-                <span class="text-xs text-red-700 font-bold">PLAYER 1</span>
-                <p class="text-[10px] text-gray-500">Tap a card below</p>
-            </div>
-            <div class="text-xl font-black text-gray-700 italic">VS</div>
-            <div id="slot-2" class="w-1/2 h-32 border-2 border-dashed border-blue-900/50 rounded-xl flex flex-col items-center justify-center text-center p-2 bg-blue-950/10">
-                <span class="text-xs text-blue-700 font-bold">PLAYER 2</span>
-                <p class="text-[10px] text-gray-500">Tap a card below</p>
-            </div>
+    <!-- Header -->
+    <header class="p-4 bg-gray-900 flex justify-between items-center sticky top-0 z-[150]">
+        <h1 class="text-xl font-black italic text-yellow-500">NFC REALM</h1>
+        <button id="nfcBtn" onclick="startNFC()" class="bg-yellow-600 text-black text-[10px] font-black py-2 px-4 rounded-full transition-all">
+            ACTIVATE NFC
+        </button>
+    </header>
+
+    <!-- VIEW: COLLECTION -->
+    <section id="view-collection" class="p-4 pb-24">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-bold text-gray-400 uppercase">My Deck</h2>
+            <button onclick="createNewCardManually()" class="text-xs bg-white text-black font-bold px-3 py-1 rounded-full">+ NEW</button>
         </div>
         
-        <button id="battleBtn" onclick="initiateBattle()" class="hidden w-full bg-white text-black font-black py-4 rounded-lg uppercase tracking-tighter hover:bg-yellow-400 transition-colors">
-            Enter Battle Arena
-        </button>
-    </div>
-
-    <!-- Battle Arena (Hidden by default) -->
-    <div id="arena" class="hidden fixed inset-0 bg-black z-[100] p-4 flex flex-col">
-        <div id="arena-content" class="flex-grow">
-             <!-- Dynamic Battle UI -->
+        <!-- Selection Preview -->
+        <div class="flex gap-2 mb-6 h-20">
+            <div id="slot-1" class="flex-1 border border-dashed border-red-500/30 rounded flex items-center justify-center text-[10px] text-red-500 uppercase font-bold">P1 Slot</div>
+            <div id="slot-2" class="flex-1 border border-dashed border-blue-500/30 rounded flex items-center justify-center text-[10px] text-blue-500 uppercase font-bold">P2 Slot</div>
         </div>
-        <div id="battleLog" class="h-32 bg-gray-900 rounded p-3 font-mono text-xs overflow-y-auto border border-gray-800 mb-4"></div>
+
+        <button id="startBattleBtn" onclick="initiateBattle()" class="hidden w-full bg-red-600 mb-6 py-3 rounded font-black uppercase tracking-widest">Start Duel</button>
+
+        <div id="deckGrid" class="grid grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- VIEW: THE LAB (EDITOR) -->
+    <section id="view-editor" class="hidden p-4 pb-24">
+        <div id="editorContent" class="max-w-md mx-auto">
+            <!-- Flick through cards UI -->
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="flickCard(-1)" class="p-2 bg-gray-800 rounded">◀</button>
+                <div class="text-center">
+                    <span id="editorIndex" class="text-xs font-bold text-yellow-500">CARD 1 / 4</span>
+                </div>
+                <button onclick="flickCard(1)" class="p-2 bg-gray-800 rounded">▶</button>
+            </div>
+
+            <!-- Card Preview + Form -->
+            <div id="cardEditorCard" class="bg-gray-900 rounded-2xl p-4 border border-gray-700">
+                <div class="mb-4 relative">
+                    <label class="text-[10px] text-gray-500 uppercase font-bold">Image URL</label>
+                    <input type="text" id="edit-img" oninput="updateEditorPreview()" class="w-full bg-black p-2 rounded text-xs text-blue-400 border border-gray-800">
+                    <img id="edit-preview-img" src="" class="w-full h-48 object-cover rounded mt-2 border border-gray-800 shadow-xl">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-[10px] text-gray-500 uppercase font-bold">Name</label>
+                        <input type="text" id="edit-name" oninput="updateEditorPreview()" class="w-full bg-black p-2 rounded text-sm font-bold border border-gray-800">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500 uppercase font-bold">NFC Tag Link</label>
+                        <div id="edit-tag" class="text-[10px] bg-gray-800 p-2 rounded truncate">Not Linked</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div>
+                        <label class="text-[10px] text-red-500 font-bold">HP</label>
+                        <input type="number" id="edit-hp" oninput="updateEditorPreview()" class="w-full bg-black p-2 rounded border border-gray-800">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-orange-500 font-bold">ATK</label>
+                        <input type="number" id="edit-atk" oninput="updateEditorPreview()" class="w-full bg-black p-2 rounded border border-gray-800">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-blue-500 font-bold">DEF</label>
+                        <input type="number" id="edit-def" oninput="updateEditorPreview()" class="w-full bg-black p-2 rounded border border-gray-800">
+                    </div>
+                </div>
+
+                <div class="space-y-2 mb-6">
+                    <label class="text-[10px] text-gray-500 uppercase font-bold">Custom Move Names</label>
+                    <input type="text" id="edit-move-atk" placeholder="Attack Move Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
+                    <input type="text" id="edit-move-def" placeholder="Defend Move Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
+                    <input type="text" id="edit-move-heal" placeholder="Heal Move Name" class="w-full bg-black p-2 rounded text-xs border border-gray-800">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="cloneCard()" class="bg-blue-900/40 text-blue-400 py-3 rounded text-xs font-bold uppercase">Clone Card</button>
+                    <button onclick="deleteCard()" class="bg-red-900/40 text-red-400 py-3 rounded text-xs font-bold uppercase">Delete</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ARENA (Full Screen Overlay) -->
+    <div id="arena" class="hidden fixed inset-0 bg-black z-[300] p-4 flex flex-col">
+        <div id="arena-content" class="flex-grow"></div>
+        <div id="battleLog" class="h-32 bg-gray-900 rounded p-3 font-mono text-[10px] overflow-y-auto border border-gray-800 mb-4"></div>
         <div id="moveControls" class="grid grid-cols-2 gap-2"></div>
     </div>
 
-    <!-- My Collection -->
-    <main class="p-4">
-        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">My Collection</h2>
-        <div id="deckGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <!-- Cards appear here -->
-        </div>
-    </main>
-
     <script>
-        let deck = JSON.parse(localStorage.getItem('nfc_battle_deck')) || [];
+        let deck = JSON.parse(localStorage.getItem('nfc_pro_deck')) || [];
+        let editorIdx = 0;
         let p1Selected = null;
         let p2Selected = null;
         let p1Active = null;
         let p2Active = null;
         let turn = 1;
 
-        const moveSet = {
-            attacks: ["Plasma Strike", "Binary Slash", "Neural Spike"],
-            defends: ["Data Shield", "Proxy Wall", "Encryption"],
-            heals: ["System Restore", "Debug Cache", "Cloud Sync"]
-        };
-
+        // Initialization
         window.onload = () => {
             if (deck.length === 0) generateStarters();
             renderDeck();
+            updateEditorFields();
         };
 
         function generateStarters() {
-            const starters = ["Cyber Monk", "Data Wraith", "Silicon Golem", "Logic Bomb"];
-            starters.forEach((name, i) => {
-                deck.push(createCardData(name, `https://picsum.photos/seed/${name}/200/300`, `starter_${i}`));
-            });
-            saveDeck();
+            const starters = ["Cyber Monk", "Data Wraith", "Silicon Golem"];
+            starters.forEach((name, i) => deck.push(createCardData(name, `https://picsum.photos/seed/${name}/400/600`, `tag_${i}`)));
+            save();
         }
 
         function createCardData(name, img, tagId) {
             return {
-                id: tagId,
-                name: name,
-                img: img,
-                hp: 25,
-                maxHp: 25,
-                atk: Math.floor(Math.random() * 4) + 4,
-                def: Math.floor(Math.random() * 2) + 2,
-                poisoned: false,
-                moves: {
-                    attack: moveSet.attacks[Math.floor(Math.random() * 3)],
-                    defend: moveSet.defends[Math.floor(Math.random() * 3)],
-                    heal: moveSet.heals[Math.floor(Math.random() * 3)]
-                }
+                id: tagId || "unlinked_" + Date.now(),
+                name: name || "New Character",
+                img: img || "https://picsum.photos/400/600",
+                hp: 25, maxHp: 25, atk: 5, def: 2,
+                moves: { attack: "Plasma Strike", defend: "Data Shield", heal: "System Restore" },
+                poisoned: false
             };
         }
 
+        // --- NFC LOGIC ---
         async function startNFC() {
-            if (!('NDEFReader' in window)) {
-                alert("NFC not supported on this browser/device.");
-                return;
-            }
+            const btn = document.getElementById('nfcBtn');
+            if (!('NDEFReader' in window)) return alert("NFC not supported.");
+            
             try {
                 const ndef = new NDEFReader();
                 await ndef.scan();
-                document.getElementById('nfcStatus').innerText = "SCANNING FOR CARDS...";
-                document.getElementById('nfcBtn').classList.add('bg-green-600');
+                btn.innerText = "NFC ACTIVATED";
+                btn.classList.replace('bg-yellow-600', 'bg-green-600');
                 
                 ndef.onreading = event => {
                     const tagId = event.serialNumber;
-                    const exists = deck.find(c => c.id === tagId);
-                    
-                    if (!exists) {
-                        const newName = prompt("New card detected! Name your card:", "Techno Hunter");
-                        if (newName) {
-                            const newCard = createCardData(newName, `https://picsum.photos/seed/${tagId}/200/300`, tagId);
-                            deck.push(newCard);
-                            saveDeck();
-                            renderDeck();
-                        }
-                    } else {
-                        alert(`Card "${exists.name}" is already in your collection!`);
-                    }
+                    handleScan(tagId);
                 };
-            } catch (err) {
-                alert("Error connecting to NFC sensor.");
+            } catch (err) { alert("NFC Blocked. Use HTTPS."); }
+        }
+
+        function handleScan(tagId) {
+            const card = deck.find(c => c.id === tagId);
+            if (card) {
+                // If in selection view, select for battle
+                selectCard(card.id);
+            } else {
+                // Link to current editor card or create new
+                if (confirm("New Tag! Link to current card?")) {
+                    deck[editorIdx].id = tagId;
+                    save(); updateEditorFields();
+                }
             }
         }
 
-        function selectCard(cardId) {
-            const card = deck.find(c => c.id === cardId);
-            
-            if (!p1Selected) {
-                p1Selected = card;
-            } else if (!p2Selected && p1Selected.id !== cardId) {
-                p2Selected = card;
-            } else {
-                // Toggle off
-                if (p1Selected?.id === cardId) p1Selected = null;
-                else if (p2Selected?.id === cardId) p2Selected = null;
-            }
+        // --- DECK MANAGEMENT ---
+        function renderDeck() {
+            const grid = document.getElementById('deckGrid');
+            grid.innerHTML = deck.map((card, i) => `
+                <div onclick="selectCard('${card.id}')" class="bg-gray-900 rounded-xl overflow-hidden cursor-pointer transition-all border-2 border-transparent ${p1Selected?.id === card.id ? 'card-selected-p1' : ''} ${p2Selected?.id === card.id ? 'card-selected-p2' : ''}">
+                    <img src="${card.img}" class="w-full h-32 object-cover opacity-80">
+                    <div class="p-2">
+                        <h3 class="text-[10px] font-black uppercase truncate">${card.name}</h3>
+                        <div class="flex justify-between text-[8px] text-gray-500">
+                            <span>HP ${card.hp}</span><span>ATK ${card.atk}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectCard(id) {
+            const card = deck.find(c => c.id === id);
+            if (p1Selected?.id === id) p1Selected = null;
+            else if (p2Selected?.id === id) p2Selected = null;
+            else if (!p1Selected) p1Selected = card;
+            else if (!p2Selected) p2Selected = card;
             
             updateSelectionUI();
         }
 
         function updateSelectionUI() {
-            const s1 = document.getElementById('slot-1');
-            const s2 = document.getElementById('slot-2');
-            const btn = document.getElementById('battleBtn');
-
-            s1.innerHTML = p1Selected ? `<img src="${p1Selected.img}" class="w-full h-full object-cover rounded-lg">` : `<span class="text-xs text-red-700 font-bold">PLAYER 1</span>`;
-            s2.innerHTML = p2Selected ? `<img src="${p2Selected.img}" class="w-full h-full object-cover rounded-lg">` : `<span class="text-xs text-blue-700 font-bold">PLAYER 2</span>`;
-            
-            btn.classList.toggle('hidden', !(p1Selected && p2Selected));
+            document.getElementById('slot-1').innerHTML = p1Selected ? `<img src="${p1Selected.img}" class="w-full h-full object-cover">` : "P1 Slot";
+            document.getElementById('slot-2').innerHTML = p2Selected ? `<img src="${p2Selected.img}" class="w-full h-full object-cover">` : "P2 Slot";
+            document.getElementById('startBattleBtn').classList.toggle('hidden', !(p1Selected && p2Selected));
             renderDeck();
         }
 
-        function renderDeck() {
-            const grid = document.getElementById('deckGrid');
-            grid.innerHTML = deck.map(card => {
-                let borderClass = "";
-                if (p1Selected?.id === card.id) borderClass = "card-selected-p1";
-                if (p2Selected?.id === card.id) borderClass = "card-selected-p2";
-
-                return `
-                <div onclick="selectCard('${card.id}')" class="bg-gray-900 rounded-xl overflow-hidden cursor-pointer transition-all ${borderClass}">
-                    <img src="${card.img}" class="w-full h-32 object-cover opacity-80">
-                    <div class="p-2">
-                        <h3 class="text-[10px] font-black uppercase truncate">${card.name}</h3>
-                        <div class="flex justify-between text-[8px] text-gray-500 mt-1">
-                            <span>ATK ${card.atk}</span>
-                            <span>DEF ${card.def}</span>
-                        </div>
-                    </div>
-                </div>
-            `}).join('');
+        // --- EDITOR LOGIC ---
+        function flickCard(dir) {
+            editorIdx = (editorIdx + dir + deck.length) % deck.length;
+            updateEditorFields();
         }
 
-        // --- BATTLE LOGIC ---
+        function updateEditorFields() {
+            const card = deck[editorIdx];
+            if (!card) return;
+            document.getElementById('editorIndex').innerText = `CARD ${editorIdx + 1} / ${deck.length}`;
+            document.getElementById('edit-name').value = card.name;
+            document.getElementById('edit-img').value = card.img;
+            document.getElementById('edit-hp').value = card.hp;
+            document.getElementById('edit-atk').value = card.atk;
+            document.getElementById('edit-def').value = card.def;
+            document.getElementById('edit-tag').innerText = card.id;
+            document.getElementById('edit-move-atk').value = card.moves.attack;
+            document.getElementById('edit-move-def').value = card.moves.defend;
+            document.getElementById('edit-move-heal').value = card.moves.heal;
+            updateEditorPreview();
+        }
+
+        function updateEditorPreview() {
+            const card = deck[editorIdx];
+            card.name = document.getElementById('edit-name').value;
+            card.img = document.getElementById('edit-img').value;
+            card.hp = parseInt(document.getElementById('edit-hp').value);
+            card.maxHp = card.hp;
+            card.atk = parseInt(document.getElementById('edit-atk').value);
+            card.def = parseInt(document.getElementById('edit-def').value);
+            card.moves.attack = document.getElementById('edit-move-atk').value;
+            card.moves.defend = document.getElementById('edit-move-def').value;
+            card.moves.heal = document.getElementById('edit-move-heal').value;
+            
+            document.getElementById('edit-preview-img').src = card.img;
+            save();
+            renderDeck();
+        }
+
+        function createNewCardManually() {
+            const nc = createCardData("New Hero", "", "");
+            deck.push(nc);
+            editorIdx = deck.length - 1;
+            save();
+            switchTab('editor');
+            updateEditorFields();
+        }
+
+        function cloneCard() {
+            const clone = JSON.parse(JSON.stringify(deck[editorIdx]));
+            clone.id = "cloned_" + Date.now();
+            clone.name += " (Copy)";
+            deck.push(clone);
+            save();
+            flickCard(1);
+        }
+
+        function deleteCard() {
+            if (deck.length <= 1) return alert("Must keep at least one card!");
+            deck.splice(editorIdx, 1);
+            editorIdx = 0;
+            save();
+            updateEditorFields();
+            renderDeck();
+        }
+
+        // --- BATTLE SYSTEM ---
         function initiateBattle() {
             p1Active = JSON.parse(JSON.stringify(p1Selected));
             p2Active = JSON.parse(JSON.stringify(p2Selected));
             document.getElementById('arena').classList.remove('hidden');
             renderArena();
-            log("The battle begins!");
         }
 
         function renderArena() {
             const arena = document.getElementById('arena-content');
             arena.innerHTML = `
                 <div class="flex justify-between gap-4 mt-10">
-                    ${fighterHTML(p1Active, 'P1')}
-                    ${fighterHTML(p2Active, 'P2')}
+                    ${fighterHTML(p1Active, 'P1', 'border-red-500')}
+                    ${fighterHTML(p2Active, 'P2', 'border-blue-500')}
                 </div>
             `;
-
-            const controls = document.getElementById('moveControls');
-            const currentActor = turn === 1 ? p1Active : p2Active;
-            
-            controls.innerHTML = `
-                <button onclick="playMove('atk')" class="bg-red-700 p-3 rounded font-bold text-xs uppercase">${currentActor.moves.attack}</button>
-                <button onclick="playMove('def')" class="bg-blue-700 p-3 rounded font-bold text-xs uppercase">${currentActor.moves.defend}</button>
-                <button onclick="playMove('heal')" class="bg-green-700 p-3 rounded font-bold text-xs uppercase">${currentActor.moves.heal}</button>
-                <button onclick="playMove('takeover')" class="bg-purple-700 p-3 rounded font-bold text-xs uppercase">Takeover</button>
-                <button onclick="playMove('wealth')" class="bg-yellow-600 text-black p-3 rounded font-bold text-xs uppercase col-span-2">Wealth Buff</button>
+            const actor = turn === 1 ? p1Active : p2Active;
+            document.getElementById('moveControls').innerHTML = `
+                <button onclick="playMove('atk')" class="bg-red-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.attack}</button>
+                <button onclick="playMove('def')" class="bg-blue-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.defend}</button>
+                <button onclick="playMove('heal')" class="bg-green-700 p-4 rounded font-bold text-xs uppercase">${actor.moves.heal}</button>
+                <button onclick="playMove('takeover')" class="bg-purple-700 p-4 rounded font-bold text-xs uppercase text-[8px]">Hostile Takeover</button>
+                <button onclick="playMove('wealth')" class="bg-yellow-600 text-black p-4 rounded font-bold text-xs uppercase col-span-2">Wealth Buff</button>
             `;
         }
 
-        function fighterHTML(card, label) {
+        function fighterHTML(card, label, border) {
             return `
                 <div class="w-1/2 flex flex-col items-center">
-                    <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden border-2 ${label === 'P1' ? 'border-red-500' : 'border-blue-500'} ${card.poisoned ? 'poisoned' : ''}">
+                    <div class="relative w-full aspect-[3/4] rounded-xl overflow-hidden border-4 ${border}">
                         <img src="${card.img}" class="w-full h-full object-cover">
                         <div class="absolute bottom-0 w-full bg-black/80 p-2">
-                            <div class="text-[10px] font-bold">${card.name}</div>
-                            <div class="w-full bg-gray-700 h-1.5 rounded-full mt-1">
+                            <div class="text-[10px] font-bold truncate">${card.name}</div>
+                            <div class="w-full bg-gray-700 h-2 rounded-full mt-1">
                                 <div class="bg-green-500 h-full" style="width: ${(card.hp/card.maxHp)*100}%"></div>
                             </div>
                         </div>
                     </div>
-                    <span class="text-[10px] mt-2 font-bold opacity-50 uppercase">${label}</span>
                 </div>
             `;
         }
@@ -241,54 +332,42 @@
         function playMove(type) {
             const actor = turn === 1 ? p1Active : p2Active;
             const target = turn === 1 ? p2Active : p1Active;
-            let m = "";
+            let logMsg = "";
 
             if (type === 'atk') {
                 let dmg = Math.max(1, actor.atk - target.def);
-                target.hp -= dmg;
-                m = `${actor.name} used ${actor.moves.attack} for ${dmg} damage!`;
+                target.hp -= dmg; logMsg = `${actor.name} dealt ${dmg} dmg!`;
             } else if (type === 'def') {
-                actor.def += 1;
-                m = `${actor.name} bolstered defenses! (+1 DEF)`;
+                actor.def += 1; logMsg = `${actor.name} +1 DEF!`;
             } else if (type === 'heal') {
-                actor.hp = Math.min(actor.maxHp, actor.hp + 5);
-                m = `${actor.name} restored 5 HP.`;
+                actor.hp = Math.min(actor.maxHp, actor.hp + 5); logMsg = `${actor.name} healed!`;
             } else if (type === 'takeover') {
-                if (Math.random() > 0.3) {
-                    target.poisoned = true;
-                    let dmg = Math.floor(Math.random() * 2) + 1;
-                    target.hp -= dmg;
-                    m = `HOSTILE TAKEOVER! ${target.name} poisoned (-${dmg} HP)`;
-                } else { m = "Hostile Takeover failed!"; }
+                if(Math.random() > 0.3) { target.hp -= 2; target.poisoned = true; logMsg = "Takeover Successful!"; }
+                else logMsg = "Takeover Failed!";
             } else if (type === 'wealth') {
-                if (Math.random() < 0.9) {
-                    let b = Math.floor(Math.random() * 3) + 1;
-                    actor.atk += b;
-                    m = `Wealth Buff! ATK increased by ${b}!`;
-                } else {
-                    actor.atk = Math.max(1, actor.atk - 2);
-                    m = `Wealth Buff BACKFIRED! ATK reduced!`;
-                }
+                if(Math.random() < 0.9) { actor.atk += 2; logMsg = "Wealth Boosted ATK!"; }
+                else { actor.atk -= 1; logMsg = "Wealth Crash!"; }
             }
 
-            if (actor.poisoned) { actor.hp -= 1; log(`${actor.name} suffered 1 poison damage.`); }
-
-            log(m);
-            if (target.hp <= 0) {
-                alert(`${actor.name} wins!`);
-                location.reload();
-            } else {
-                turn = turn === 1 ? 2 : 1;
-                renderArena();
-            }
+            if (actor.poisoned) { actor.hp -= 1; log(`${actor.name} took poison damage!`); }
+            
+            log(logMsg);
+            if (target.hp <= 0) { alert(actor.name + " WINS!"); location.reload(); }
+            turn = turn === 1 ? 2 : 1;
+            renderArena();
         }
 
-        function log(msg) {
-            const l = document.getElementById('battleLog');
-            l.innerHTML = `<div>> ${msg}</div>` + l.innerHTML;
+        // Helpers
+        function log(m) { const l = document.getElementById('battleLog'); l.innerHTML = `<div>> ${m}</div>` + l.innerHTML; }
+        function save() { localStorage.setItem('nfc_pro_deck', JSON.stringify(deck)); }
+        function switchTab(t) {
+            ['battle', 'collection', 'editor'].forEach(tab => {
+                document.getElementById('view-' + tab)?.classList.add('hidden');
+                document.getElementById('tab-' + tab).classList.remove('tab-active');
+            });
+            document.getElementById('view-' + t).classList.remove('hidden');
+            document.getElementById('tab-' + t).classList.add('tab-active');
         }
-
-        function saveDeck() { localStorage.setItem('nfc_battle_deck', JSON.stringify(deck)); }
     </script>
 </body>
 </html>
