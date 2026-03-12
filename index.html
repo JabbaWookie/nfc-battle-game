@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Realm: Stable Edition</title>
+    <title>NFC Realm: Zero-Bug Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; font-family: system-ui, sans-serif; }
         .card-p1 { border: 4px solid #f85149; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
-        .card-p2 { border: 4px solid #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4); }
+        .card-p2 { border: 4px solid #58a6ff; box-shadow: 0 0 15px rgba(58, 166, 255, 0.4); }
         .tab-active { color: #f2cc60; border-bottom: 2px solid #f2cc60; }
         .nfc-active { animation: pulse-green 1.5s infinite; }
         @keyframes pulse-green {
@@ -20,9 +20,9 @@
 </head>
 <body class="min-h-screen pb-24">
 
-    <!-- NFC Status Banner -->
-    <div id="nfcBanner" class="bg-gray-800 text-[10px] font-black p-2 text-center uppercase tracking-widest transition-all h-10 flex items-center justify-center">
-        NFC Sensor: Off (Tap Identify/Link)
+    <!-- NFC Banner -->
+    <div id="nfcBanner" class="bg-gray-800 text-[10px] font-black p-2 text-center uppercase tracking-widest h-10 flex items-center justify-center">
+        NFC Sensor: Idle
     </div>
 
     <header class="p-4 bg-gray-900 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
@@ -38,16 +38,23 @@
     <!-- VIEW: COLLECTION -->
     <section id="view-collection" class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xs font-bold text-gray-500 uppercase font-mono">Arena Selection</h2>
-            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase">+ Create</button>
+            <h2 class="text-xs font-bold text-gray-500 uppercase font-mono tracking-widest">Arena Slots</h2>
+            <button onclick="createNewCard()" class="text-[10px] bg-white text-black px-3 py-1 rounded-full font-bold uppercase">+ New Hero</button>
         </div>
 
+        <!-- Manual Slots -->
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div id="slot-1" onclick="clearSlot(1)" class="h-28 border-2 border-dashed border-red-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/5 overflow-hidden transition-all">P1 SLOT</div>
-            <div id="slot-2" onclick="clearSlot(2)" class="h-28 border-2 border-dashed border-blue-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/5 overflow-hidden transition-all">P2 SLOT</div>
+            <div id="slot-1" onclick="clearSlot(1)" class="h-32 border-2 border-dashed border-red-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/5 overflow-hidden transition-all active:scale-95">
+                P1 SLOT
+            </div>
+            <div id="slot-2" onclick="clearSlot(2)" class="h-32 border-2 border-dashed border-blue-500/30 rounded-2xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/5 overflow-hidden transition-all active:scale-95">
+                P2 SLOT
+            </div>
         </div>
 
-        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase mb-6 tracking-widest shadow-lg shadow-yellow-500/20">Enter Battle</button>
+        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-2xl font-black uppercase mb-6 tracking-widest shadow-xl">Enter Battle</button>
+        
+        <h2 class="text-[10px] font-bold text-gray-600 uppercase mb-3 tracking-widest">Your Collection</h2>
         <div id="deckGrid" class="grid grid-cols-2 gap-4"></div>
     </section>
 
@@ -55,15 +62,15 @@
     <section id="view-editor" class="hidden p-4">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-4 bg-gray-900 p-2 rounded-xl border border-gray-800">
-                <button onclick="changeEditorIndex(-1)" class="p-2 text-yellow-500 text-xl">◀</button>
+                <button onclick="changeEditorIndex(-1)" class="p-2 text-yellow-500 text-2xl font-bold">◀</button>
                 <span id="editorInfo" class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Card 1 / 1</span>
-                <button onclick="changeEditorIndex(1)" class="p-2 text-yellow-500 text-xl">▶</button>
+                <button onclick="changeEditorIndex(1)" class="p-2 text-yellow-500 text-2xl font-bold">▶</button>
             </div>
 
             <div class="bg-gray-900 p-5 rounded-3xl border border-gray-800 shadow-2xl">
                 <div class="relative mb-4">
-                    <img id="edit-preview-img" src="" class="w-full h-52 object-cover rounded-2xl border border-gray-700">
-                    <button id="linkBtn" onclick="setNFCMode('link')" class="absolute top-2 right-2 bg-yellow-500 text-black text-[9px] font-black p-2 rounded-lg border border-black/20 shadow-lg uppercase">Link Tag</button>
+                    <img id="edit-preview-img" src="" class="w-full h-56 object-cover rounded-2xl border border-gray-700 shadow-inner">
+                    <button onclick="setNFCMode('link')" class="absolute top-2 right-2 bg-yellow-500 text-black text-[9px] font-black p-2 rounded-lg border border-black/20 shadow-lg uppercase">Link Tag</button>
                 </div>
 
                 <div class="space-y-3">
@@ -86,17 +93,17 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2 mb-6 text-[9px] uppercase font-bold">
-                    <input type="text" id="edit-m-atk" oninput="syncEditor()" placeholder="Attack Name" class="bg-black p-2 rounded-lg border border-gray-800 text-center">
-                    <input type="text" id="edit-m-def" oninput="syncEditor()" placeholder="Defend Name" class="bg-black p-2 rounded-lg border border-gray-800 text-center">
-                    <input type="text" id="edit-m-heal" oninput="syncEditor()" placeholder="Heal Name" class="bg-black p-2 rounded-lg border border-gray-800 text-center">
+                <div class="grid grid-cols-3 gap-2 mb-6">
+                    <input type="text" id="edit-m-atk" oninput="syncEditor()" placeholder="Atk Move" class="bg-black p-2 rounded-lg border border-gray-800 text-[10px] text-center uppercase">
+                    <input type="text" id="edit-m-def" oninput="syncEditor()" placeholder="Def Move" class="bg-black p-2 rounded-lg border border-gray-800 text-[10px] text-center uppercase">
+                    <input type="text" id="edit-m-heal" oninput="syncEditor()" placeholder="Heal Move" class="bg-black p-2 rounded-lg border border-gray-800 text-[10px] text-center uppercase">
                 </div>
 
                 <div class="border-t border-gray-800 pt-4 mt-4 grid grid-cols-2 gap-2">
-                    <button onclick="exportSingle()" class="bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold text-gray-300">Copy JSON</button>
-                    <button onclick="importJSON()" class="bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold text-gray-300">Import</button>
-                    <button onclick="cloneCurrent()" class="bg-gray-800 text-[9px] py-2 rounded-lg uppercase font-bold text-gray-300">Clone</button>
-                    <button onclick="deleteCurrent()" class="bg-red-900/20 text-red-500 text-[9px] py-2 rounded-lg uppercase font-bold">Delete</button>
+                    <button onclick="exportSingle()" class="bg-gray-800 text-[9px] py-3 rounded-lg uppercase font-bold text-gray-300">Copy JSON</button>
+                    <button onclick="importJSON()" class="bg-gray-800 text-[9px] py-3 rounded-lg uppercase font-bold text-gray-300">Import</button>
+                    <button onclick="cloneCurrent()" class="bg-gray-800 text-[9px] py-3 rounded-lg uppercase font-bold text-gray-300">Clone</button>
+                    <button onclick="deleteCurrent()" class="bg-red-900/20 text-red-500 text-[9px] py-3 rounded-lg uppercase font-bold">Delete</button>
                 </div>
             </div>
         </div>
@@ -110,16 +117,14 @@
     </div>
 
     <script>
+        // --- INITIALIZATION ---
         let deck = JSON.parse(localStorage.getItem('nfc_realm_deck')) || [];
         let editIdx = 0;
         let p1 = null, p2 = null;
         let turn = 1;
-
-        // FIXED ENGINE GLOBALS
         let nfcReader = null;
-        let currentMode = null; // 'link' or 'identify'
+        let currentMode = null;
         let lastScanTime = 0;
-        const SCAN_COOLDOWN = 2000; // 2 seconds
 
         window.onload = () => {
             if (deck.length === 0) {
@@ -132,7 +137,7 @@
 
         function createCardData(name, img, id) {
             return {
-                id: id || "temp_" + Date.now(),
+                id: id || "temp_" + Math.random().toString(36).substr(2, 9),
                 name: name || "New Hero",
                 img: img || "https://picsum.photos/400/600",
                 hp: 20, maxHp: 20, atk: 5, def: 2,
@@ -141,95 +146,39 @@
             };
         }
 
-        // --- SINGLETON NFC ENGINE ---
-        async function setNFCMode(mode) {
-            if (!('NDEFReader' in window)) return alert("Web NFC is not supported on this browser.");
-            
-            currentMode = mode;
-            const banner = document.getElementById('nfcBanner');
-            banner.innerText = mode === 'link' ? "READY TO LINK: TAP TAG NOW" : "READY TO IDENTIFY: TAP TAG NOW";
-            banner.classList.add('nfc-active');
+        // --- ATOMIC SELECTION LOGIC (FIXES THE BUG) ---
+        function selectManually(id) {
+            // Find the character in the deck
+            const card = deck.find(c => c.id === id);
+            if (!card) return;
 
-            // Only start the reader once
-            if (!nfcReader) {
-                try {
-                    nfcReader = new NDEFReader();
-                    await nfcReader.scan();
-                    
-                    nfcReader.onreading = (event) => {
-                        // COOLDOWN CHECK: Stop double-triggering
-                        const now = Date.now();
-                        if (now - lastScanTime < SCAN_COOLDOWN) return;
-                        lastScanTime = now;
-
-                        const tagId = event.serialNumber;
-                        if (navigator.vibrate) navigator.vibrate(100);
-
-                        processScan(tagId);
-                    };
-
-                    nfcReader.onreadingerror = () => {
-                        document.getElementById('nfcBanner').innerText = "READ ERROR - TRY AGAIN";
-                    };
-                } catch (err) {
-                    banner.innerText = "NFC PERMISSION DENIED";
-                    banner.classList.remove('nfc-active');
-                }
-            }
-        }
-
-        function processScan(tagId) {
-            const banner = document.getElementById('nfcBanner');
-            
-            if (currentMode === 'link') {
-                // Link tag to the character currently in the editor
-                deck[editIdx].id = tagId;
-                save();
-                loadEditor();
-                renderDeck();
-                banner.innerText = `LINKED: ${deck[editIdx].name}`;
-                banner.classList.remove('nfc-active');
-                currentMode = null; // Reset mode after link
+            // ATOMIC CHECK: 
+            // 1. Is this card ALREADY in P1? If so, remove it.
+            if (p1 && p1.id === id) {
+                p1 = null;
             } 
-            else if (currentMode === 'identify') {
-                const found = deck.find(c => c.id === tagId);
-                if (found) {
-                    handleAutoSelection(found);
-                    banner.innerText = `FOUND: ${found.name}`;
-                } else {
-                    banner.innerText = "UNKNOWN TAG - LINK IT IN LAB";
-                }
-            }
-        }
-
-        function handleAutoSelection(card) {
-            // Check if card is already in a slot to prevent self-duplication
-            if (p1 && p1.id === card.id) return; 
-            if (p2 && p2.id === card.id) return;
-
-            // Simple logic: fill P1, then P2
-            if (!p1) {
+            // 2. Is this card ALREADY in P2? If so, remove it.
+            else if (p2 && p2.id === id) {
+                p2 = null;
+            } 
+            // 3. If it's not anywhere, try to fill Slot 1.
+            else if (!p1) {
                 p1 = JSON.parse(JSON.stringify(card));
-            } else if (!p2) {
+            } 
+            // 4. If Slot 1 is taken, try to fill Slot 2.
+            else if (!p2) {
                 p2 = JSON.parse(JSON.stringify(card));
-            } else {
-                // If both full, replace the older one (P2)
+            } 
+            // 5. If both slots full, overwrite Slot 2.
+            else {
                 p2 = JSON.parse(JSON.stringify(card));
             }
+
             updateSlotsUI();
         }
 
-        // --- UI & DECK ---
         function clearSlot(num) {
             if(num === 1) p1 = null; else p2 = null;
-            updateSlotsUI();
-        }
-
-        function selectManually(id) {
-            const card = deck.find(c => c.id === id);
-            if (p1?.id === id) p1 = null;
-            else if (p2?.id === id) p2 = null;
-            else handleAutoSelection(card);
             updateSlotsUI();
         }
 
@@ -243,7 +192,7 @@
         function renderDeck() {
             const grid = document.getElementById('deckGrid');
             grid.innerHTML = deck.map(c => `
-                <div onclick="selectManually('${c.id}')" class="bg-gray-900 rounded-2xl overflow-hidden border-2 transition-all ${p1?.id === c.id ? 'card-p1' : (p2?.id === c.id ? 'card-p2' : 'border-transparent')}">
+                <div onclick="selectManually('${c.id}')" class="bg-gray-900 rounded-2xl overflow-hidden border-2 transition-all active:scale-95 ${p1?.id === c.id ? 'card-p1' : (p2?.id === c.id ? 'card-p2' : 'border-transparent')}">
                     <img src="${c.img}" class="w-full h-32 object-cover opacity-80">
                     <div class="p-3">
                         <div class="text-[10px] font-black uppercase truncate">${c.name}</div>
@@ -252,7 +201,48 @@
             `).join('');
         }
 
-        // --- THE LAB ---
+        // --- NFC ENGINE ---
+        async function setNFCMode(mode) {
+            if (!('NDEFReader' in window)) return alert("Web NFC is not supported.");
+            currentMode = mode;
+            const banner = document.getElementById('nfcBanner');
+            banner.innerText = mode === 'link' ? "READY TO LINK: TAP TAG NOW" : "READY TO IDENTIFY: TAP TAG NOW";
+            banner.classList.add('nfc-active');
+
+            if (!nfcReader) {
+                try {
+                    nfcReader = new NDEFReader();
+                    await nfcReader.scan();
+                    nfcReader.onreading = (event) => {
+                        const now = Date.now();
+                        if (now - lastScanTime < 2000) return; // 2s cooldown
+                        lastScanTime = now;
+                        const tagId = event.serialNumber;
+                        if (navigator.vibrate) navigator.vibrate(100);
+                        processScan(tagId);
+                    };
+                } catch (err) { alert("NFC Failed. Check HTTPS."); }
+            }
+        }
+
+        function processScan(tagId) {
+            const banner = document.getElementById('nfcBanner');
+            if (currentMode === 'link') {
+                deck[editIdx].id = tagId;
+                save(); loadEditor(); renderDeck();
+                banner.innerText = `LINKED: ${deck[editIdx].name}`;
+                banner.classList.remove('nfc-active');
+                currentMode = null;
+            } else if (currentMode === 'identify') {
+                const found = deck.find(c => c.id === tagId);
+                if (found) {
+                    selectManually(found.id);
+                    banner.innerText = `FOUND: ${found.name}`;
+                } else { banner.innerText = "UNKNOWN TAG"; }
+            }
+        }
+
+        // --- THE LAB (EDITOR) ---
         function loadEditor() {
             const c = deck[editIdx];
             if(!c) return;
@@ -289,15 +279,21 @@
         }
 
         function createNewCard() {
-            deck.push(createCardData());
+            const nc = createCardData();
+            deck.push(nc);
             editIdx = deck.length - 1;
             save(); switchTab('editor'); loadEditor();
         }
 
         function cloneCurrent() {
             let clone = JSON.parse(JSON.stringify(deck[editIdx]));
-            clone.id = "clone_" + Date.now();
-            deck.push(clone); save(); changeEditorIndex(1);
+            // CRITICAL: Ensure clone gets a brand new ID so it doesn't overlap with original
+            clone.id = "clone_" + Math.random().toString(36).substr(2, 9);
+            clone.name += " Copy";
+            deck.push(clone);
+            save();
+            changeEditorIndex(1);
+            alert("Cloned! This new card is UNLINKED. Go to Lab to link a tag.");
         }
 
         function deleteCurrent() {
@@ -307,19 +303,20 @@
         }
 
         function exportSingle() {
-            navigator.clipboard.writeText(JSON.stringify(deck[editIdx])).then(() => alert("Copied JSON!"));
+            navigator.clipboard.writeText(JSON.stringify(deck[editIdx])).then(() => alert("JSON Copied!"));
         }
 
         function importJSON() {
             const s = prompt("Paste Character JSON:");
             if(!s) return;
             try {
-                const o = JSON.parse(s); o.id = "imp_" + Date.now();
+                const o = JSON.parse(s);
+                o.id = "imp_" + Math.random().toString(36).substr(2, 9);
                 deck.push(o); save(); editIdx = deck.length-1; loadEditor(); renderDeck();
             } catch(e) { alert("Invalid JSON"); }
         }
 
-        // --- BATTLE ---
+        // --- ARENA ---
         function openArena() {
             document.getElementById('arena').classList.remove('hidden');
             renderArena();
@@ -347,9 +344,9 @@
             `;
             const actor = turn === 1 ? p1 : p2;
             document.getElementById('moveGrid').innerHTML = `
-                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.atk}</button>
-                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.def}</button>
-                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.heal}</button>
+                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.atk}</button>
+                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.def}</button>
+                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.heal}</button>
                 <button onclick="doMove('takeover')" class="bg-purple-700 p-4 rounded-xl font-bold text-[8px] uppercase">Takeover</button>
                 <button onclick="doMove('wealth')" class="bg-yellow-600 text-black p-4 rounded-xl font-bold text-xs uppercase col-span-2">Wealth Buff</button>
             `;
@@ -381,14 +378,13 @@
             else { turn = turn === 1 ? 2 : 1; renderArena(); }
         }
 
+        // --- HELPERS ---
         function save() { localStorage.setItem('nfc_realm_deck', JSON.stringify(deck)); }
         function switchTab(t) {
             document.getElementById('view-collection').classList.toggle('hidden', t !== 'collection');
             document.getElementById('view-editor').classList.toggle('hidden', t !== 'editor');
             document.getElementById('btn-collection').classList.toggle('tab-active', t === 'collection');
             document.getElementById('btn-editor').classList.toggle('tab-active', t === 'editor');
-            
-            // If switching away, stop the current scan mode to prevent accidental background triggers
             currentMode = null;
             document.getElementById('nfcBanner').innerText = "NFC Sensor: Idle";
             document.getElementById('nfcBanner').classList.remove('nfc-active');
