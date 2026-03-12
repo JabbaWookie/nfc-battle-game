@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFC Realm: Auto-Battle</title>
+    <title>NFC Realm: Fixed Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0d1117; color: #c9d1d9; -webkit-tap-highlight-color: transparent; font-family: sans-serif; }
         .card-p1 { border: 4px solid #f85149; box-shadow: 0 0 15px rgba(248, 81, 73, 0.4); }
         .card-p2 { border: 4px solid #58a6ff; box-shadow: 0 0 15px rgba(88, 166, 255, 0.4); }
         .tab-active { color: #f2cc60; border-bottom: 2px solid #f2cc60; }
@@ -21,14 +21,14 @@
 <body class="min-h-screen pb-24">
 
     <!-- NFC Status Bar -->
-    <div id="nfcBanner" class="bg-gray-800 text-[10px] font-black p-2 text-center uppercase tracking-widest transition-all">
+    <div id="nfcBanner" class="bg-gray-800 text-[10px] font-black p-2 text-center uppercase tracking-widest transition-all h-8 flex items-center justify-center">
         NFC Sensor: Idle
     </div>
 
     <!-- Header -->
     <header class="p-4 bg-gray-900 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
         <h1 class="text-xl font-black italic text-yellow-500 tracking-tighter">NFC REALM</h1>
-        <button onclick="activateNFC('identify')" class="bg-blue-600 text-white text-[10px] font-black py-2 px-4 rounded-full uppercase">Identify Tag</button>
+        <button onclick="startNFCScan('identify')" class="bg-blue-600 text-white text-[10px] font-black py-2 px-4 rounded-full uppercase">Identify Tag</button>
     </header>
 
     <!-- Navigation -->
@@ -45,11 +45,15 @@
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div id="slot-1" class="h-28 border border-dashed border-red-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/10 overflow-hidden">P1 SLOT</div>
-            <div id="slot-2" class="h-28 border border-dashed border-blue-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/10 overflow-hidden">P2 SLOT</div>
+            <div id="slot-1" onclick="clearSlot(1)" class="h-28 border border-dashed border-red-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-red-500 bg-red-900/10 overflow-hidden relative">
+                P1 SLOT
+            </div>
+            <div id="slot-2" onclick="clearSlot(2)" class="h-28 border border-dashed border-blue-500/30 rounded-xl flex items-center justify-center text-[10px] font-bold text-blue-500 bg-blue-900/10 overflow-hidden relative">
+                P2 SLOT
+            </div>
         </div>
 
-        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-xl font-black uppercase mb-6 tracking-widest">Start Duel</button>
+        <button id="battleStartBtn" onclick="openArena()" class="hidden w-full bg-yellow-500 text-black py-4 rounded-xl font-black uppercase mb-6 tracking-widest shadow-xl">Start Duel</button>
 
         <div id="deckGrid" class="grid grid-cols-2 gap-4"></div>
     </section>
@@ -58,15 +62,15 @@
     <section id="view-editor" class="hidden p-4">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-4 bg-gray-900 p-2 rounded-xl">
-                <button onclick="changeEditorIndex(-1)" class="p-2 text-yellow-500">◀</button>
+                <button onclick="changeEditorIndex(-1)" class="p-2 text-yellow-500 text-xl font-bold">◀</button>
                 <span id="editorInfo" class="text-[10px] font-bold uppercase tracking-widest">Card 1 / 1</span>
-                <button onclick="changeEditorIndex(1)" class="p-2 text-yellow-500">▶</button>
+                <button onclick="changeEditorIndex(1)" class="p-2 text-yellow-500 text-xl font-bold">▶</button>
             </div>
 
             <div class="bg-gray-900 p-5 rounded-3xl border border-gray-800">
                 <div class="relative mb-4">
                     <img id="edit-preview-img" src="" class="w-full h-52 object-cover rounded-2xl border border-gray-700">
-                    <button id="linkBtn" onclick="activateNFC('link')" class="absolute top-2 right-2 bg-black/80 text-white text-[9px] font-bold p-2 rounded-lg border border-white/20">LINK TAG</button>
+                    <button id="linkBtn" onclick="startNFCScan('link')" class="absolute top-2 right-2 bg-black/80 text-white text-[9px] font-bold p-2 rounded-lg border border-white/20">LINK TAG</button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-3">
@@ -75,17 +79,17 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-2 my-4">
-                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800 text-center">
                         <label class="block text-[9px] text-red-500 font-bold uppercase">HP</label>
-                        <input type="number" id="edit-hp" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
+                        <input type="number" id="edit-hp" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none text-center">
                     </div>
-                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800 text-center">
                         <label class="block text-[9px] text-orange-500 font-bold uppercase">ATK</label>
-                        <input type="number" id="edit-atk" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
+                        <input type="number" id="edit-atk" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none text-center">
                     </div>
-                    <div class="bg-black p-2 rounded-xl border border-gray-800">
+                    <div class="bg-black p-2 rounded-xl border border-gray-800 text-center">
                         <label class="block text-[9px] text-blue-500 font-bold uppercase">DEF</label>
-                        <input type="number" id="edit-def" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none">
+                        <input type="number" id="edit-def" oninput="syncEditor()" class="w-full bg-transparent text-sm font-bold outline-none text-center">
                     </div>
                 </div>
 
@@ -117,7 +121,10 @@
         let editIdx = 0;
         let p1 = null, p2 = null;
         let turn = 1;
-        let currentNFCReader = null;
+
+        // NEW: NFC Controller Variables
+        let ndef = null;
+        let abortController = null;
 
         window.onload = () => {
             if (deck.length === 0) {
@@ -139,62 +146,91 @@
             };
         }
 
-        // --- NFC LOGIC ---
-        async function activateNFC(mode) {
-            if (!('NDEFReader' in window)) return alert("NFC not supported.");
-            
+        // --- FIXED NFC ENGINE ---
+        async function startNFCScan(mode) {
+            if (!('NDEFReader' in window)) return alert("Web NFC not supported on this browser.");
+
             const banner = document.getElementById('nfcBanner');
-            banner.innerText = mode === 'link' ? "WAITING FOR TAG TO LINK..." : "WAITING FOR TAG TO IDENTIFY...";
+            
+            // 1. Kill any existing scan/listeners
+            if (abortController) {
+                abortController.abort();
+            }
+            abortController = new AbortController();
+
+            banner.innerText = mode === 'link' ? "NFC: TAP TAG TO LINK" : "NFC: TAP TAG TO IDENTIFY";
             banner.classList.add('nfc-active');
 
             try {
-                if (!currentNFCReader) {
-                    currentNFCReader = new NDEFReader();
-                    await currentNFCReader.scan();
-                }
+                ndef = new NDEFReader();
+                await ndef.scan({ signal: abortController.signal });
 
-                currentNFCReader.onreading = event => {
+                ndef.onreading = (event) => {
                     const tagId = event.serialNumber;
                     
-                    if(mode === 'link') {
-                        // Silent update
+                    if (mode === 'link') {
+                        // Update current card's physical ID
                         deck[editIdx].id = tagId;
                         save();
                         loadEditor();
                         renderDeck();
+                        
                         banner.innerText = "SUCCESSFULLY LINKED!";
-                        setTimeout(() => banner.innerText = "NFC Sensor: Idle", 2000);
-                        banner.classList.remove('nfc-active');
+                        finishScan();
                     } 
-                    else if(mode === 'identify') {
-                        const card = deck.find(c => c.id === tagId);
-                        if(card) {
-                            // Automatically fill slots
-                            handleAutoSelection(card);
-                            banner.innerText = `IDENTIFIED: ${card.name}`;
-                            setTimeout(() => banner.innerText = "NFC Sensor: Idle", 2000);
+                    else if (mode === 'identify') {
+                        const foundCard = deck.find(c => c.id === tagId);
+                        if (foundCard) {
+                            handleAutoSelection(foundCard);
+                            banner.innerText = `IDENTIFIED: ${foundCard.name}`;
                         } else {
-                            banner.innerText = "TAG UNKNOWN";
+                            banner.innerText = "UNKNOWN TAG";
                         }
-                        banner.classList.remove('nfc-active');
+                        // We don't finishScan() here so user can tap multiple cards in identify mode
                     }
                 };
-            } catch (e) { 
-                banner.innerText = "NFC BLOCKED";
+
+                ndef.onreadingerror = () => {
+                    banner.innerText = "READ ERROR - TRY AGAIN";
+                };
+
+            } catch (error) {
+                console.error(error);
+                banner.innerText = "NFC PERMISSION DENIED";
+                banner.classList.remove('nfc-active');
             }
         }
 
+        function finishScan() {
+            setTimeout(() => {
+                const banner = document.getElementById('nfcBanner');
+                banner.innerText = "NFC Sensor: Idle";
+                banner.classList.remove('nfc-active');
+                if (abortController) abortController.abort();
+            }, 2000);
+        }
+
         function handleAutoSelection(card) {
-            // Logic: Fill P1 first, then P2. If both full, replace P2.
+            // Logic: If P1 is empty, fill it. Else fill P2. 
+            // If the same card is tapped, don't double add it.
             if (!p1 || p1.id === card.id) {
                 p1 = JSON.parse(JSON.stringify(card));
+            } else if (!p2 || p2.id === card.id) {
+                p2 = JSON.parse(JSON.stringify(card));
             } else {
+                // If both full, replace P2
                 p2 = JSON.parse(JSON.stringify(card));
             }
             updateSlotsUI();
         }
 
-        // --- DECK MANAGEMENT ---
+        // --- UI & DECK ---
+        function clearSlot(num) {
+            if (num === 1) p1 = null;
+            if (num === 2) p2 = null;
+            updateSlotsUI();
+        }
+
         function renderDeck() {
             const grid = document.getElementById('deckGrid');
             grid.innerHTML = deck.map(c => `
@@ -211,8 +247,7 @@
             const card = deck.find(c => c.id === id);
             if (p1?.id === id) p1 = null;
             else if (p2?.id === id) p2 = null;
-            else if (!p1) p1 = JSON.parse(JSON.stringify(card));
-            else if (!p2) p2 = JSON.parse(JSON.stringify(card));
+            else handleAutoSelection(card);
             updateSlotsUI();
         }
 
@@ -223,7 +258,7 @@
             renderDeck();
         }
 
-        // --- EDITOR ---
+        // --- EDITOR & JSON ---
         function loadEditor() {
             const c = deck[editIdx];
             if(!c) return;
@@ -254,10 +289,9 @@
             save(); renderDeck();
         }
 
-        // --- JSON HELPERS ---
         function exportSingle() {
             const data = JSON.stringify(deck[editIdx]);
-            navigator.clipboard.writeText(data).then(() => alert("JSON Copied!"));
+            navigator.clipboard.writeText(data).then(() => alert("Character JSON Copied!"));
         }
 
         function importJSON() {
@@ -265,7 +299,7 @@
             if(!str) return;
             try {
                 const obj = JSON.parse(str);
-                obj.id = "import_" + Date.now();
+                obj.id = "import_" + Date.now(); // Ensure new ID so it doesn't collide
                 deck.push(obj);
                 save(); renderDeck();
                 editIdx = deck.length - 1;
@@ -286,8 +320,11 @@
 
         function cloneCurrent() {
             let clone = JSON.parse(JSON.stringify(deck[editIdx]));
-            clone.id = "clone_" + Date.now();
-            deck.push(clone); save(); changeEditorIndex(1);
+            clone.id = "clone_" + Date.now(); // IMPORTANT: Assigns unique hardware ID
+            deck.push(clone); 
+            save(); 
+            changeEditorIndex(1);
+            alert("Card Cloned! Remember to LINK a new tag to this clone.");
         }
 
         function deleteCurrent() {
@@ -310,9 +347,9 @@
             `;
             const actor = turn === 1 ? p1 : p2;
             document.getElementById('moveGrid').innerHTML = `
-                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.atk}</button>
-                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.def}</button>
-                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase">${actor.moves.heal}</button>
+                <button onclick="doMove('atk')" class="bg-red-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.atk}</button>
+                <button onclick="doMove('def')" class="bg-blue-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.def}</button>
+                <button onclick="doMove('heal')" class="bg-green-700 p-4 rounded-xl font-bold text-xs uppercase shadow-lg">${actor.moves.heal}</button>
                 <button onclick="doMove('takeover')" class="bg-purple-700 p-4 rounded-xl font-bold text-[8px] uppercase">Takeover</button>
                 <button onclick="doMove('wealth')" class="bg-yellow-600 text-black p-4 rounded-xl font-bold text-xs uppercase col-span-2">Wealth Buff</button>
             `;
@@ -320,7 +357,7 @@
 
         function fighterUI(c, label, border) {
             return `<div class="w-1/2 flex flex-col items-center">
-                <div class="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-4 ${border}">
+                <div class="relative w-full aspect-[3/4] rounded-2xl overflow-hidden border-4 ${border} ${c.poisoned?'nfc-active':''}">
                     <img src="${c.img}" class="w-full h-full object-cover">
                     <div class="absolute bottom-0 w-full bg-black/80 p-2">
                         <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
@@ -328,7 +365,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="text-[9px] font-bold mt-2 text-gray-500 uppercase">${c.name}</div>
+                <div class="text-[9px] font-bold mt-2 text-gray-400 uppercase">${c.name}</div>
             </div>`;
         }
 
@@ -346,12 +383,12 @@
                 actor.hp = Math.min(actor.maxHp, actor.hp + 5); msg = `${actor.name} healed!`;
             } else if (type === 'takeover') {
                 if (Math.random() > 0.3) {
-                    target.hp -= 2; target.poisoned = true; msg = "Hostile Takeover Success!";
+                    target.hp -= 2; target.poisoned = true; msg = "Takeover Successful!";
                 } else { msg = "Takeover Failed!"; }
             } else if (type === 'wealth') {
                 if (Math.random() < 0.9) {
                     actor.atk += 2; msg = "Wealth Buff active!";
-                } else { actor.atk = 0; msg = "Stock Market Crash!"; }
+                } else { actor.atk = 0; msg = "Market Crash!"; }
             }
 
             addLog(msg);
@@ -362,6 +399,10 @@
         function addLog(m) { const l = document.getElementById('battleLog'); l.innerHTML = `<div>> ${m}</div>` + l.innerHTML; }
         function save() { localStorage.setItem('nfc_realm_deck', JSON.stringify(deck)); }
         function switchTab(t) {
+            if (abortController) abortController.abort(); // Cancel NFC if tab switches
+            document.getElementById('nfcBanner').innerText = "NFC Sensor: Idle";
+            document.getElementById('nfcBanner').classList.remove('nfc-active');
+
             document.getElementById('view-collection').classList.toggle('hidden', t !== 'collection');
             document.getElementById('view-editor').classList.toggle('hidden', t !== 'editor');
             document.getElementById('btn-collection').classList.toggle('tab-active', t === 'collection');
